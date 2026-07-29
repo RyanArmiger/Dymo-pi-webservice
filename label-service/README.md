@@ -136,17 +136,18 @@ configured) manually if needed.
 
 ## Standalone Wi-Fi hotspot
 
-For direct use without an existing Wi-Fi network, Raspberry Pi OS Legacy
-(Bookworm) Lite can run a persistent NetworkManager hotspot:
+For direct use without an existing Wi-Fi network, run:
 
 ```bash
 sudo ./scripts/setup-hotspot.sh
 ```
 
-The script installs NetworkManager if necessary, prompts twice for a WPA2
-password, creates or updates the `label-hotspot` connection and activates it.
-Because `wlan0` changes networks, an SSH session using Wi-Fi may disconnect
-while the script activates the hotspot.
+The script prompts twice for a WPA2 password and creates a persistent
+`label-hotspot`. On the original Pi Zero W it uses a minimal hostapd and
+dnsmasq configuration because protected NetworkManager hotspots fail during
+association on that Wi-Fi chipset. Other supported hardware continues to use
+NetworkManager's hotspot mode. Because `wlan0` changes networks, an SSH
+session using Wi-Fi may disconnect while the script activates the hotspot.
 
 Users then connect to:
 
@@ -162,24 +163,26 @@ ssh USERNAME@10.42.0.1
 ```
 
 The hotspot starts automatically after reboot. It is standalone: the setup
-does not add network fallback, an upstream internet connection, a captive
-portal or separate hostapd/dnsmasq configuration. NetworkManager's built-in
-shared IPv4 mode is used to give connected devices a local address.
+does not add network fallback, internet sharing or a captive portal.
 
-Do not use this hotspot setup on an original Pi Zero W running Raspberry Pi
-OS Trixie. Its current protected-hotspot stack rejects WPA keys on this
-hardware; the setup script detects that combination and exits before changing
-the active network.
+On hardware using the NetworkManager hotspot, use `sudo nmtui` and choose
+**Activate a connection** to switch temporarily to another saved Wi-Fi.
 
-To switch the Pi temporarily to another saved Wi-Fi network:
+On an original Pi Zero W, first stop the dedicated hotspot service, then use
+NetworkManager:
 
 ```bash
+sudo systemctl stop label-hotspot
 sudo nmtui
 ```
 
-Choose **Activate a connection**, select the other Wi-Fi connection and
-activate it. Re-enable `label-hotspot` in the same menu, or reboot, to return
-to the label-printer hotspot.
+Return to the label-printer hotspot with:
+
+```bash
+sudo systemctl start label-hotspot
+```
+
+It also starts automatically on the next reboot.
 
 ## Uninstalling
 

@@ -62,13 +62,14 @@ sudo ./scripts/setup-hotspot.sh
 
 Choose a WPA2 password when prompted. Connect clients to
 `Lab Label Printer`, then open `http://10.42.0.1:8000`. SSH remains available
-at `ssh USERNAME@10.42.0.1`. Use `sudo nmtui` and **Activate a connection** to
-switch temporarily to another saved Wi-Fi network.
+at `ssh USERNAME@10.42.0.1`.
 
-Use Raspberry Pi OS Legacy (Bookworm) Lite 32-bit on the original Pi Zero W.
-The protected NetworkManager hotspot currently fails on that hardware under
-Raspberry Pi OS Trixie; the setup script detects the affected combination and
-exits without changing the active connection.
+On the original Pi Zero W, the script uses a minimal hostapd/dnsmasq fallback
+because protected NetworkManager hotspots fail during client association on
+that hardware. To switch temporarily to another saved network, run
+`sudo systemctl stop label-hotspot`, then `sudo nmtui`. Return to hotspot mode
+with `sudo systemctl start label-hotspot` or reboot. Other hardware uses the
+NetworkManager hotspot directly and can switch connections with `sudo nmtui`.
 
 ## Verification
 
