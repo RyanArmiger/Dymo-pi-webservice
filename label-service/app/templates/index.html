@@ -16,10 +16,9 @@
              value="{{ form.get('date_' ~ position, '') if form else (today if position == 1 else '') }}"
              placeholder="{{ 'DD/MM/YYYY' if position == 1 else 'Defaults to Label 1 date' }}">
 
-      <label for="sample_id_{{ position }}">Sample ID</label>
-      <input type="text" id="sample_id_{{ position }}" name="sample_id_{{ position }}"
-             value="{{ form.get('sample_id_' ~ position, '') if form else '' }}"
-             {% if position == 1 %}required{% endif %}>
+      <label for="sample_id_{{ position }}">Sample IDs (one per line, up to 3)</label>
+      <textarea id="sample_id_{{ position }}" name="sample_id_{{ position }}" rows="3"
+                {% if position == 1 %}required{% endif %}>{{ form.get('sample_id_' ~ position, '') if form else '' }}</textarea>
 
       <label for="experiment_id_{{ position }}">Experiment ID</label>
       <input type="text" id="experiment_id_{{ position }}" name="experiment_id_{{ position }}"

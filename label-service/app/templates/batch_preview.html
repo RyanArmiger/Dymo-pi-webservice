@@ -7,6 +7,7 @@
   <p>Upload an Excel workbook containing one label request per row.</p>
   <ul>
     <li>Required columns: <code>sample_id</code>, <code>experiment_id</code>, <code>requestor_id</code>.</li>
+    <li>Put up to three sample IDs on separate lines within the <code>sample_id</code> cell.</li>
     <li>Optional columns: <code>date</code> and <code>copies</code>.</li>
     <li>A blank date uses today. A blank copy count creates one sticker.</li>
     <li>Every copy receives its own unique label ID.</li>
@@ -50,7 +51,7 @@
           <tr>
             <td>{{ loop.index }}</td>
             <td>{{ r.date }}</td>
-            <td>{{ r.sample_id }}</td>
+            <td class="sample-id-lines">{{ r.sample_id }}</td>
             <td>{{ r.experiment_id }}</td>
             <td>{{ r.requestor_id }}</td>
             <td>{{ r.copies }}</td>

@@ -56,11 +56,21 @@ label {
 input[type="text"],
 input[type="number"],
 input[type="password"],
-input[type="file"] {
+input[type="file"],
+textarea {
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 1rem;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.sample-id-lines {
+  white-space: pre-line;
 }
 
 button {

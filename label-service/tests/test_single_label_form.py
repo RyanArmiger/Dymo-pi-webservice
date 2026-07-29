@@ -1,11 +1,14 @@
 from werkzeug.datastructures import MultiDict
 import re
 
+import pytest
+
 import config
 from app import create_app
 from app import database, preview_store
 from app.routes import _records_from_form
 from app.printer import PrintResult
+from app.validation import ValidationError
 
 
 def _form(**overrides):
@@ -42,6 +45,20 @@ def test_complete_second_label_creates_independent_record():
     assert len(records) == 2
     assert records[1].sample_id == "S002"
     assert records[1].date == "28/07/2026"
+
+
+def test_three_sample_ids_are_normalised_and_kept_on_one_label():
+    records = _records_from_form(_form(sample_id_1="S001\r\nS002\n\nS003"))
+
+    assert len(records) == 1
+    assert records[0].sample_id == "S001\nS002\nS003"
+
+
+def test_more_than_three_sample_ids_is_rejected():
+    with pytest.raises(ValidationError) as exc_info:
+        _records_from_form(_form(sample_id_1="S001\nS002\nS003\nS004"))
+
+    assert "more than 3 entries" in str(exc_info.value)
 
 
 def test_second_label_defaults_without_sample_do_not_create_record():
@@ -92,6 +109,7 @@ def test_successful_print_retains_experiment_and_requestor_for_next_form(
     assert response.status_code == 200
 
     next_form = client.get("/").get_data(as_text=True)
+
     def field_value(field_id):
         match = re.search(
             rf'<input[^>]*id="{field_id}"[^>]*value="([^"]*)"', next_form, re.S
@@ -99,7 +117,11 @@ def test_successful_print_retains_experiment_and_requestor_for_next_form(
         assert match is not None
         return match.group(1)
 
-    assert field_value("sample_id_1") == ""
+    sample_match = re.search(
+        r'<textarea[^>]*id="sample_id_1"[^>]*>(.*?)</textarea>', next_form, re.S
+    )
+    assert sample_match is not None
+    assert sample_match.group(1) == ""
     assert field_value("experiment_id_1") == "EXP01"
     assert field_value("requestor_id_1") == "RA"
     assert field_value("experiment_id_2") == "EXP01"

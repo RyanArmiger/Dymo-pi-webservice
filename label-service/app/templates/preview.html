@@ -37,7 +37,7 @@
     {% for record in records %}
       {% set position = loop.index %}
       <input type="hidden" name="date_{{ position }}" value="{{ record.date }}">
-      <input type="hidden" name="sample_id_{{ position }}" value="{{ record.sample_id }}">
+      <textarea hidden name="sample_id_{{ position }}">{{ record.sample_id }}</textarea>
       <input type="hidden" name="experiment_id_{{ position }}" value="{{ record.experiment_id }}">
       <input type="hidden" name="requestor_id_{{ position }}" value="{{ record.requestor_id }}">
     {% endfor %}

@@ -86,16 +86,27 @@ def validate_record(
         except ValidationError as exc:
             errors.extend(exc.errors)
 
-    sample_id = sample_id.strip()
+    # Preserve multiple sample IDs in the existing field, one per line.
+    # Blank lines are ignored and line endings are normalised before storage.
+    sample_ids = [line.strip() for line in sample_id.splitlines() if line.strip()]
+    sample_id = "\n".join(sample_ids)
     experiment_id = experiment_id.strip()
     requestor_id = requestor_id.strip()
 
     if not sample_id:
         errors.append("sample_id is required")
-    elif len(sample_id) > config.MAX_SAMPLE_ID_LENGTH:
-        errors.append(
-            f"sample_id exceeds maximum length of {config.MAX_SAMPLE_ID_LENGTH} characters"
-        )
+    else:
+        if len(sample_ids) > config.MAX_SAMPLE_IDS_PER_LABEL:
+            errors.append(
+                f"sample_id contains more than {config.MAX_SAMPLE_IDS_PER_LABEL} entries"
+            )
+        for index, value in enumerate(sample_ids, start=1):
+            if len(value) > config.MAX_SAMPLE_ID_LENGTH:
+                field_name = "sample_id" if index == 1 else f"sample_id {index}"
+                errors.append(
+                    f"{field_name} exceeds maximum length of "
+                    f"{config.MAX_SAMPLE_ID_LENGTH} characters"
+                )
 
     if not experiment_id:
         errors.append("experiment_id is required")

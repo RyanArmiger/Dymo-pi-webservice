@@ -23,7 +23,7 @@
   <h1>Label {{ row.label_id }}</h1>
   <ul class="summary-list">
     <li>Date: {{ row.date }}</li>
-    <li>Sample ID: {{ row.sample_id }}</li>
+    <li>Sample ID: <span class="sample-id-lines">{{ row.sample_id }}</span></li>
     <li>Experiment ID: {{ row.experiment_id }}</li>
     <li>Requestor ID: {{ row.requestor_id }}</li>
     <li>Source: {{ row.source }}</li>
@@ -63,7 +63,7 @@
         <tr>
           <td><a href="{{ url_for('labels.label_detail', label_id=row.label_id) }}">{{ row.label_id }}</a></td>
           <td>{{ row.date }}</td>
-          <td>{{ row.sample_id }}</td>
+          <td class="sample-id-lines">{{ row.sample_id }}</td>
           <td>{{ row.experiment_id }}</td>
           <td>{{ row.requestor_id }}</td>
           <td>

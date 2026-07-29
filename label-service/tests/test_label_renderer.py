@@ -29,6 +29,20 @@ def test_render_individual_label_with_max_length_sample_id_does_not_raise():
     assert img.size == (config.INDIVIDUAL_LABEL_WIDTH_PX, config.INDIVIDUAL_LABEL_HEIGHT_PX)
 
 
+def test_render_individual_label_accepts_three_sample_id_rows():
+    record = LabelContent(
+        label_id="0001",
+        date="28/07/2026",
+        sample_id="S001\nS002\nS003",
+        experiment_id="EXP01",
+        requestor_id="RA",
+    )
+
+    img = render_individual_label(record)
+
+    assert img.size == (config.INDIVIDUAL_LABEL_WIDTH_PX, config.INDIVIDUAL_LABEL_HEIGHT_PX)
+
+
 def test_render_blank_label_size_and_all_white():
     img = render_blank_label()
     assert img.size == (config.INDIVIDUAL_LABEL_WIDTH_PX, config.INDIVIDUAL_LABEL_HEIGHT_PX)

@@ -92,7 +92,7 @@ def _fit_font_for_width(
 def render_individual_label(
     record: LabelContent, *, debug: bool = False, height_px: int | None = None
 ) -> Image.Image:
-    """Render one 25x13mm sticker: QR on the left, five text lines on the right."""
+    """Render one sticker with a QR and up to three prominent sample-ID rows."""
     width = config.INDIVIDUAL_LABEL_WIDTH_PX
     # height_px lets one label be narrowed to its printable width when the
     # sticker pair is not registered to the page (see config.CROSS_OFFSET_MM).
@@ -123,16 +123,20 @@ def render_individual_label(
     text_x = qr_x + qr_size + config.TEXT_COLUMN_GAP_PX
     text_max_width = width - text_x - config.TEXT_TRAILING_MARGIN_PX
 
+    sample_ids = [line for line in record.sample_id.splitlines() if line][:3]
+    top_line = f"{record.date}  {record.requestor_id}"
     lines = [
-        (
-            record.sample_id,
-            True,
-            config.SAMPLE_FONT_MAX_SIZE_PX,
-            config.SAMPLE_FONT_MIN_SIZE_PX,
-        ),
-        (record.date, False, config.TEXT_FONT_MAX_SIZE_PX, config.TEXT_FONT_MIN_SIZE_PX),
+        (top_line, False, config.TEXT_FONT_MAX_SIZE_PX, config.TEXT_FONT_MIN_SIZE_PX),
+        *[
+            (
+                sample_id,
+                True,
+                config.SAMPLE_FONT_MAX_SIZE_PX,
+                config.SAMPLE_FONT_MIN_SIZE_PX,
+            )
+            for sample_id in sample_ids
+        ],
         (record.experiment_id, False, config.TEXT_FONT_MAX_SIZE_PX, config.TEXT_FONT_MIN_SIZE_PX),
-        (record.requestor_id, False, config.TEXT_FONT_MAX_SIZE_PX, config.TEXT_FONT_MIN_SIZE_PX),
         (record.label_id, True, config.ID_FONT_MAX_SIZE_PX, config.ID_FONT_MIN_SIZE_PX),
     ]
 
@@ -143,12 +147,17 @@ def render_individual_label(
         for text, bold, max_size, min_size in lines
     ]
 
-    line_gaps = [
-        config.GROUP_SPACING_PX,
-        config.LINE_SPACING_PX,
-        config.LINE_SPACING_PX,
-        config.GROUP_SPACING_PX,
-    ]
+    # Separate the metadata header and footer from the prominent sample-ID
+    # block, but keep multiple sample IDs visually grouped.
+    line_gaps = []
+    for index in range(len(lines) - 1):
+        next_is_first_sample = index == 0
+        current_is_last_sample = index == len(sample_ids)
+        line_gaps.append(
+            config.GROUP_SPACING_PX
+            if next_is_first_sample or current_is_last_sample
+            else config.LINE_SPACING_PX
+        )
     total_text_height = sum(f.size for f in fonts) + sum(line_gaps)
     y = max(pad, (usable_height - total_text_height) // 2)
 
