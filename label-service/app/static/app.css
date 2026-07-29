@@ -157,6 +157,7 @@ legend {
   image-rendering: pixelated;
   border: 1px solid var(--border);
   max-height: 400px;
+  transform: rotate(-90deg);
 }
 
 @media (prefers-color-scheme: dark) {
