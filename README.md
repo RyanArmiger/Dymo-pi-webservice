@@ -13,6 +13,9 @@ repository, enter it before running the commands below:
 cd label-service
 ```
 
+For frequently used Pi, hotspot, serial-console and maintenance commands, see
+[PI_COMMANDS.md](PI_COMMANDS.md).
+
 ## Local development
 
 ```bash
