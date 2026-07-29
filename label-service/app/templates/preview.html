@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Preview &mdash; Lab Label Service{% endblock %}
+{% block content %}
+
+{% if confirmation %}
+  <h1>Print job submitted</h1>
+  <ul class="summary-list">
+    <li>Stickers submitted: {{ sticker_count }}</li>
+    <li>Allocated ID range: {{ label_id_first }}&ndash;{{ label_id_last }}</li>
+    <li>Printer job identifier(s): {{ submitted_jobs | join(', ') if submitted_jobs else 'n/a' }}</li>
+    <li>Date and time: {{ submitted_at }}</li>
+  </ul>
+  <p><a href="{{ url_for('labels.index') }}">Create another label</a></p>
+
+{% else %}
+  <h1>Preview</h1>
+  <p class="hint">This preview is not physically to scale.</p>
+  <p class="hint">
+    Provisional ID{% if sticker_count != 1 %}s{% endif %}:
+    {{ provisional_id_first }}{% if provisional_id_last != provisional_id_first %}&ndash;{{ provisional_id_last }}{% endif %}.
+    IDs are allocated only when you confirm printing.
+  </p>
+
+  {% if printer_error %}
+    <p class="error-list"><strong>{{ printer_error }}</strong></p>
+  {% endif %}
+
+  <p>{{ sticker_count }} sticker(s) will be created on {{ preview_tokens | length }} print page(s):</p>
+  <div class="preview-pages">
+    {% for token in preview_tokens %}
+      <img class="preview-image" src="{{ url_for('labels.preview_image', token=token) }}" alt="Preview page {{ loop.index }}">
+    {% endfor %}
+  </div>
+
+  <form method="post" action="{{ url_for('labels.do_print') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% for record in records %}
+      {% set position = loop.index %}
+      <input type="hidden" name="date_{{ position }}" value="{{ record.date }}">
+      <input type="hidden" name="sample_id_{{ position }}" value="{{ record.sample_id }}">
+      <input type="hidden" name="experiment_id_{{ position }}" value="{{ record.experiment_id }}">
+      <input type="hidden" name="requestor_id_{{ position }}" value="{{ record.requestor_id }}">
+    {% endfor %}
+    <button type="submit" {% if printer_error %}disabled{% endif %}>Confirm print</button>
+  </form>
+  <p><a href="{{ url_for('labels.index') }}">Back to form</a></p>
+{% endif %}
+
+{% endblock %}

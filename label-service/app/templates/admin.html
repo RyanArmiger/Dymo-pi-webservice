@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Sign in &mdash; Lab Label Service{% endblock %}
+{% block content %}
+{% if not authed %}
+  <h1>Sign in</h1>
+  <p>This label service is restricted to authorised lab users.</p>
+  {% if not auth_configured %}
+    <p class="error-list"><strong>No application password has been configured. Set <code>ADMIN_PASSWORD_HASH</code> before using the service.</strong></p>
+  {% endif %}
+  <form method="post" action="{{ url_for('labels.admin_login') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="password">Lab password</label>
+    <input type="password" id="password" name="password" required {% if not auth_configured %}disabled{% endif %}>
+    <button type="submit" {% if not auth_configured %}disabled{% endif %}>Sign in</button>
+  </form>
+{% else %}
+  <h1>Admin</h1>
+  <form method="post" action="{{ url_for('labels.admin_logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit">Log out</button>
+  </form>
+
+  <h2>Counter</h2>
+  <ul class="summary-list">
+    <li>Current value: {{ counter_value }}</li>
+    <li>Maximum: {{ counter_max }}</li>
+  </ul>
+  <form method="post" action="{{ url_for('labels.admin_set_counter') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="new_value">New counter value</label>
+    <input type="number" id="new_value" name="new_value" min="0" max="{{ counter_max }}" required>
+    <label for="reason">Reason (required, logged)</label>
+    <input type="text" id="reason" name="reason" required>
+    <label><input type="checkbox" name="confirm" value="yes" required> I understand this changes which IDs get allocated next</label>
+    <button type="submit">Update counter</button>
+  </form>
+
+  <h2>Printer</h2>
+  <ul class="summary-list">
+    <li>State: {{ printer_status.state }}</li>
+    <li>Queued jobs: {{ printer_status.queued_jobs }}</li>
+  </ul>
+  <form method="post" action="{{ url_for('labels.admin_calibration_print') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit">Print calibration/alignment page</button>
+  </form>
+  <p class="hint">The calibration page does not consume permanent label IDs.</p>
+{% endif %}
+{% endblock %}

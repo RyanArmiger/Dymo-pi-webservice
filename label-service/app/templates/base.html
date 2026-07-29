@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Lab Label Service{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('labels.index') }}">Lab Label Service</a>
+    {% if session.get('admin_authed') %}
+      <nav>
+        <a href="{{ url_for('labels.index') }}">Single label</a>
+        <a href="{{ url_for('labels.batch_home') }}">Batch upload</a>
+        <a href="{{ url_for('labels.history') }}">History</a>
+        <a href="{{ url_for('labels.status') }}">Status</a>
+        <a href="{{ url_for('labels.admin_home') }}">Admin</a>
+      </nav>
+    {% endif %}
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flash-list">
+          {% for message in messages %}
+            <li class="flash">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% if errors %}
+      <ul class="error-list">
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>Local network only &mdash; not connected to the internet.</p>
+  </footer>
+</body>
+</html>

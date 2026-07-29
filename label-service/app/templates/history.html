@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if status_only %}Printer status{% elif single %}Label detail{% else %}History{% endif %}
+  &mdash; Lab Label Service
+{% endblock %}
+{% block content %}
+
+{% if status_only %}
+  <h1>Printer status</h1>
+  <ul class="summary-list">
+    <li>State: <strong>{{ printer_status.state }}</strong></li>
+    <li>Queued jobs: {{ printer_status.queued_jobs }}</li>
+  </ul>
+  <p class="hint">
+    {% if printer_status.state == 'ready' %}Printer ready.
+    {% elif printer_status.state == 'paused' %}Queue paused.
+    {% elif printer_status.state == 'unavailable' %}Printer unavailable.
+    {% else %}Job pending / unknown state.{% endif %}
+  </p>
+
+{% elif single %}
+  {% set row = labels[0] %}
+  <h1>Label {{ row.label_id }}</h1>
+  <ul class="summary-list">
+    <li>Date: {{ row.date }}</li>
+    <li>Sample ID: {{ row.sample_id }}</li>
+    <li>Experiment ID: {{ row.experiment_id }}</li>
+    <li>Requestor ID: {{ row.requestor_id }}</li>
+    <li>Source: {{ row.source }}</li>
+    {% if row.source_file_path %}
+      <li>Source workbook:
+        <a href="{{ url_for('labels.batch_source_download', batch_id=row.batch_id) }}">{{ row.source_filename }}</a>
+        ({{ row.source_file_size }} bytes; SHA-256 {{ row.source_file_sha256 }})
+      </li>
+    {% endif %}
+    <li>Status: {{ row.status }}</li>
+    <li>Created: {{ row.created_at }}</li>
+    <li>Reprint count: {{ reprint_count if reprint_count is not none else 0 }}</li>
+  </ul>
+
+  {% if reprint_job_id %}
+    <p class="flash">Reprint submitted (job {{ reprint_job_id }}).</p>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('labels.reprint_label', label_id=row.label_id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="reason">Reason for reprint (optional)</label>
+    <input type="text" id="reason" name="reason">
+    <button type="submit">Reprint this label (preserves ID {{ row.label_id }})</button>
+  </form>
+
+{% else %}
+  <h1>Print history</h1>
+  <table class="preview-table">
+    <thead>
+      <tr>
+        <th>Label ID</th><th>Date</th><th>Sample ID</th><th>Experiment ID</th>
+        <th>Requestor ID</th><th>Source</th><th>Status</th><th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in labels %}
+        <tr>
+          <td><a href="{{ url_for('labels.label_detail', label_id=row.label_id) }}">{{ row.label_id }}</a></td>
+          <td>{{ row.date }}</td>
+          <td>{{ row.sample_id }}</td>
+          <td>{{ row.experiment_id }}</td>
+          <td>{{ row.requestor_id }}</td>
+          <td>
+            {{ row.source }}
+            {% if row.source_file_path %}
+              &mdash; <a href="{{ url_for('labels.batch_source_download', batch_id=row.batch_id) }}">download workbook</a>
+            {% endif %}
+          </td>
+          <td>{{ row.status }}</td>
+          <td>{{ row.created_at }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}

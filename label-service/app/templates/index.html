@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Print labels &mdash; Lab Label Service{% endblock %}
+{% block content %}
+<h1>Print up to two labels</h1>
+<p>Label 1 is required. Leave Label 2 empty if it is not needed; no second ID will be allocated.</p>
+
+<form method="post" action="{{ url_for('labels.preview') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  {% for position in (1, 2) %}
+    <fieldset>
+      <legend>Label {{ position }}{% if position == 2 %} (optional){% endif %}</legend>
+
+      <label for="date_{{ position }}">Date</label>
+      <input type="text" id="date_{{ position }}" name="date_{{ position }}"
+             value="{{ form.get('date_' ~ position, '') if form else (today if position == 1 else '') }}"
+             placeholder="{{ 'DD/MM/YYYY' if position == 1 else 'Defaults to Label 1 date' }}">
+
+      <label for="sample_id_{{ position }}">Sample ID</label>
+      <input type="text" id="sample_id_{{ position }}" name="sample_id_{{ position }}"
+             value="{{ form.get('sample_id_' ~ position, '') if form else '' }}"
+             {% if position == 1 %}required{% endif %}>
+
+      <label for="experiment_id_{{ position }}">Experiment ID</label>
+      <input type="text" id="experiment_id_{{ position }}" name="experiment_id_{{ position }}"
+             value="{{ form.get('experiment_id_' ~ position, '') if form else default_experiment_id }}"
+             {% if position == 1 %}required{% endif %}>
+
+      <label for="requestor_id_{{ position }}">Requestor ID</label>
+      <input type="text" id="requestor_id_{{ position }}" name="requestor_id_{{ position }}"
+             value="{{ form.get('requestor_id_' ~ position, '') if form else default_requestor_id }}"
+             {% if position == 1 %}required{% endif %}>
+    </fieldset>
+  {% endfor %}
+
+  <button type="submit">Preview</button>
+</form>
+
+<script>
+  function followPrimary(primaryId, secondaryId) {
+    var primary = document.getElementById(primaryId);
+    var secondary = document.getElementById(secondaryId);
+    var follows = secondary.value === "" || secondary.value === primary.value;
+
+    secondary.addEventListener("input", function () {
+      follows = secondary.value === primary.value;
+    });
+    primary.addEventListener("input", function () {
+      if (follows) {
+        secondary.value = primary.value;
+      }
+    });
+  }
+
+  followPrimary("experiment_id_1", "experiment_id_2");
+  followPrimary("requestor_id_1", "requestor_id_2");
+</script>
+{% endblock %}

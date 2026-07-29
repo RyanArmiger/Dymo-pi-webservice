@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Batch upload &mdash; Lab Label Service{% endblock %}
+{% block content %}
+<h1>Batch upload</h1>
+
+{% if not records %}
+  <p>Upload an Excel workbook containing one label request per row.</p>
+  <ul>
+    <li>Required columns: <code>sample_id</code>, <code>experiment_id</code>, <code>requestor_id</code>.</li>
+    <li>Optional columns: <code>date</code> and <code>copies</code>.</li>
+    <li>A blank date uses today. A blank copy count creates one sticker.</li>
+    <li>Every copy receives its own unique label ID.</li>
+  </ul>
+  <p><a class="button-link" href="{{ url_for('labels.template_download') }}">Download template with example row</a></p>
+
+  <form method="post" action="{{ url_for('labels.batch_upload') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="batch-file">Excel workbook</label>
+    <input type="file" id="batch-file" name="file" accept=".xlsx" required>
+    <button type="submit">Upload and validate</button>
+  </form>
+{% else %}
+  <h2>{{ source_filename }}</h2>
+
+  {% if printer_error %}
+    <p class="error-list"><strong>{{ printer_error }}</strong></p>
+  {% endif %}
+
+  <ul class="summary-list">
+    <li>Spreadsheet rows: {{ records | length }}</li>
+    <li>Individual stickers: {{ total_stickers }}</li>
+    <li>Physical two-up pages: {{ physical_pages }}</li>
+    <li>Final unused sticker position: {{ 'Yes' if has_blank_final_position else 'No' }}</li>
+  </ul>
+  <p class="hint">
+    Provisional ID range if printed now: {{ provisional_first }}&ndash;{{ provisional_last }}
+    (not reserved until you confirm print).
+  </p>
+  {% if has_blank_final_position %}
+    <p class="hint">The final page will contain one label and one deliberately blank position. No ID is allocated to the blank position.</p>
+  {% endif %}
+
+  <div class="table-scroll">
+    <table class="preview-table">
+      <thead>
+        <tr><th>Row</th><th>Date</th><th>Sample ID</th><th>Experiment ID</th><th>Requestor ID</th><th>Copies</th></tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ r.date }}</td>
+            <td>{{ r.sample_id }}</td>
+            <td>{{ r.experiment_id }}</td>
+            <td>{{ r.requestor_id }}</td>
+            <td>{{ r.copies }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" action="{{ url_for('labels.batch_print') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button type="submit" {% if printer_error %}disabled{% endif %}>Confirm print ({{ total_stickers }} stickers)</button>
+  </form>
+  <p><a href="{{ url_for('labels.batch_home') }}">Upload a different file</a></p>
+{% endif %}
+{% endblock %}
