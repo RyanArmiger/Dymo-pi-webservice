@@ -34,14 +34,22 @@ def _build_workbook(headers: list[str], rows: list[list]) -> BytesIO:
 
 def test_parse_workbook_happy_path_all_columns():
     buf = _build_workbook(
-        ["sample_id", "experiment_id", "requestor_id", "date", "copies"],
-        [["S001", "E001", "RA", "28/07/2026", 2]],
+        [
+            "sample_id_1",
+            "sample_id_2",
+            "sample_id_3",
+            "experiment_id",
+            "requestor_id",
+            "date",
+            "copies",
+        ],
+        [["S001", "S002", "S003", "E001", "RA", "28/07/2026", 2]],
     )
     records, errors = parse_workbook(buf)
     assert errors == []
     assert len(records) == 1
     record = records[0]
-    assert record.sample_id == "S001"
+    assert record.sample_id == "S001\nS002\nS003"
     assert record.experiment_id == "E001"
     assert record.requestor_id == "RA"
     assert record.date == "28/07/2026"
@@ -50,7 +58,7 @@ def test_parse_workbook_happy_path_all_columns():
 
 def test_parse_workbook_case_insensitive_whitespace_headers():
     buf = _build_workbook(
-        [" Sample_ID ", "EXPERIMENT_ID", " requestor_id", "Date", "Copies"],
+        [" Sample_ID_1 ", "EXPERIMENT_ID", " requestor_id", "Date", "Copies"],
         [["S001", "E001", "RA", "28/07/2026", 1]],
     )
     records, errors = parse_workbook(buf)
@@ -61,7 +69,7 @@ def test_parse_workbook_case_insensitive_whitespace_headers():
 
 def test_parse_workbook_missing_required_column_single_clear_error():
     buf = _build_workbook(
-        ["sample_id", "requestor_id"],
+        ["sample_id_1", "requestor_id"],
         [["S001", "RA"]],
     )
     records, errors = parse_workbook(buf)
@@ -72,7 +80,7 @@ def test_parse_workbook_missing_required_column_single_clear_error():
 
 def test_parse_workbook_empty_rows_skipped_without_errors():
     buf = _build_workbook(
-        ["sample_id", "experiment_id", "requestor_id", "date", "copies"],
+        ["sample_id_1", "experiment_id", "requestor_id", "date", "copies"],
         [
             ["S001", "E001", "RA", "28/07/2026", 1],
             [None, None, None, None, None],
@@ -86,7 +94,7 @@ def test_parse_workbook_empty_rows_skipped_without_errors():
 
 def test_parse_workbook_missing_optional_date_and_copies_default():
     buf = _build_workbook(
-        ["sample_id", "experiment_id", "requestor_id"],
+        ["sample_id_1", "experiment_id", "requestor_id"],
         [["S001", "E001", "RA"]],
     )
     records, errors = parse_workbook(buf)
@@ -101,7 +109,7 @@ def test_parse_workbook_missing_optional_date_and_copies_default():
 def test_parse_workbook_excel_date_typed_cell_parsed():
     workbook = Workbook()
     sheet = workbook.active
-    sheet.append(["sample_id", "experiment_id", "requestor_id", "date", "copies"])
+    sheet.append(["sample_id_1", "experiment_id", "requestor_id", "date", "copies"])
     sheet.append(["S001", "E001", "RA", dt.datetime(2026, 7, 28), 1])
     buf = _workbook_to_bytesio(workbook)
 
@@ -113,7 +121,7 @@ def test_parse_workbook_excel_date_typed_cell_parsed():
 
 def test_parse_workbook_invalid_rows_collected_with_row_numbers_valid_rows_still_succeed():
     buf = _build_workbook(
-        ["sample_id", "experiment_id", "requestor_id", "date", "copies"],
+        ["sample_id_1", "experiment_id", "requestor_id", "date", "copies"],
         [
             ["", "E001", "RA", "28/07/2026", 1],
             ["S002", "E002", "RB", "28/07/2026", 1],
@@ -159,11 +167,55 @@ def test_build_template_workbook_roundtrip_via_parse_workbook():
     records, errors = parse_workbook(buf)
     assert errors == []
     assert len(records) == 1
-    assert records[0].sample_id == "S001"
+    assert records[0].sample_id == "S001\nS002\nS003"
 
 
 def test_build_template_workbook_headers():
     workbook = build_template_workbook(include_example=False)
     sheet = workbook.active
     headers = [cell.value for cell in sheet[1]]
-    assert headers == ["sample_id", "experiment_id", "requestor_id", "date", "copies"]
+    assert headers == [
+        "sample_id_1",
+        "sample_id_2",
+        "sample_id_3",
+        "experiment_id",
+        "requestor_id",
+        "date",
+        "copies",
+    ]
+
+
+def test_parse_workbook_allows_blank_optional_sample_id_columns():
+    buf = _build_workbook(
+        [
+            "sample_id_1",
+            "sample_id_2",
+            "sample_id_3",
+            "experiment_id",
+            "requestor_id",
+        ],
+        [["S001", "", "S003", "E001", "RA"]],
+    )
+
+    records, errors = parse_workbook(buf)
+
+    assert errors == []
+    assert records[0].sample_id == "S001\nS003"
+
+
+def test_parse_workbook_requires_first_sample_id_column_per_row():
+    buf = _build_workbook(
+        [
+            "sample_id_1",
+            "sample_id_2",
+            "sample_id_3",
+            "experiment_id",
+            "requestor_id",
+        ],
+        [["", "S002", "", "E001", "RA"]],
+    )
+
+    records, errors = parse_workbook(buf)
+
+    assert records == []
+    assert errors == ["Row 2: sample_id_1 is required"]

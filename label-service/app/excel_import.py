@@ -8,8 +8,8 @@ from openpyxl.worksheet.worksheet import Worksheet
 import config
 from app.validation import LabelRecord, ValidationError, today_uk, validate_record
 
-REQUIRED_COLUMNS = ("sample_id", "experiment_id", "requestor_id")
-OPTIONAL_COLUMNS = ("date", "copies")
+REQUIRED_COLUMNS = ("sample_id_1", "experiment_id", "requestor_id")
+OPTIONAL_COLUMNS = ("sample_id_2", "sample_id_3", "date", "copies")
 ALL_COLUMNS = REQUIRED_COLUMNS + OPTIONAL_COLUMNS
 
 
@@ -61,11 +61,24 @@ def parse_workbook(file_obj) -> tuple[list[LabelRecord], list[str]]:
                 return ""
             return str(value).strip()
 
-        sample_id = text_cell("sample_id")
+        sample_id_1 = text_cell("sample_id_1")
+        sample_ids = [
+            value
+            for value in (
+                sample_id_1,
+                text_cell("sample_id_2"),
+                text_cell("sample_id_3"),
+            )
+            if value
+        ]
+        sample_id = "\n".join(sample_ids)
         experiment_id = text_cell("experiment_id")
         requestor_id = text_cell("requestor_id")
 
         if not sample_id and not experiment_id and not requestor_id:
+            continue
+        if not sample_id_1:
+            errors.append(f"Row {row_number}: sample_id_1 is required")
             continue
 
         date_value = raw_cell("date")
@@ -107,18 +120,34 @@ def build_template_workbook(include_example: bool = True) -> Workbook:
     sheet: Worksheet = workbook.active
     sheet.title = "Labels"
 
-    headers = ["sample_id", "experiment_id", "requestor_id", "date", "copies"]
+    headers = [
+        "sample_id_1",
+        "sample_id_2",
+        "sample_id_3",
+        "experiment_id",
+        "requestor_id",
+        "date",
+        "copies",
+    ]
     sheet.append(headers)
     for cell in sheet[1]:
         cell.font = Font(bold=True)
     sheet.freeze_panes = "A2"
 
-    column_widths = {"A": 16, "B": 16, "C": 14, "D": 12, "E": 8}
+    column_widths = {
+        "A": 16,
+        "B": 16,
+        "C": 16,
+        "D": 16,
+        "E": 14,
+        "F": 12,
+        "G": 8,
+    }
     for col, width in column_widths.items():
         sheet.column_dimensions[col].width = width
 
     if include_example:
-        sheet.append(["S001", "EXP01", "RA", today_uk(), 1])
-        sheet.cell(row=2, column=4).number_format = "DD/MM/YYYY"
+        sheet.append(["S001", "S002", "S003", "EXP01", "RA", today_uk(), 1])
+        sheet.cell(row=2, column=6).number_format = "DD/MM/YYYY"
 
     return workbook

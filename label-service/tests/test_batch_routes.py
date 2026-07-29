@@ -49,7 +49,7 @@ def test_batch_home_has_upload_form_and_template_link(monkeypatch, tmp_path):
 def test_invalid_batch_upload_does_not_allocate_ids(monkeypatch, tmp_path):
     client = _authenticated_client(monkeypatch, tmp_path)
     workbook = _workbook_bytes(
-        ["sample_id", "requestor_id"],
+        ["sample_id_1", "requestor_id"],
         [["S001", "RA"]],
     )
 
@@ -71,7 +71,7 @@ def test_invalid_batch_upload_does_not_allocate_ids(monkeypatch, tmp_path):
 def test_confirmed_batch_archives_and_redownloads_original_workbook(monkeypatch, tmp_path):
     client = _authenticated_client(monkeypatch, tmp_path)
     workbook = _workbook_bytes(
-        ["sample_id", "experiment_id", "requestor_id", "date", "copies"],
+        ["sample_id_1", "experiment_id", "requestor_id", "date", "copies"],
         [["S001", "EXP01", "RA", "28/07/2026", 1]],
     )
     original_bytes = workbook.getvalue()
