@@ -16,6 +16,10 @@ cd label-service
 For frequently used Pi, hotspot, serial-console and maintenance commands, see
 [PI_COMMANDS.md](PI_COMMANDS.md).
 
+The illustrated basic user guide is available as
+[Markdown](user-guide/USER_GUIDE.md) or as a
+[PDF](user-guide/lab-label-printer-user-guide.pdf).
+
 ## Local development
 
 ```bash
