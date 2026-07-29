@@ -20,6 +20,10 @@ The illustrated basic user guide is available as
 [Markdown](user-guide/USER_GUIDE.md) or as a
 [PDF](user-guide/lab-label-printer-user-guide.pdf).
 
+A print-ready A4 folded version is available as a
+[two-page PDF](user-guide/lab-label-printer-folded-pamphlet.pdf), with an
+[editable HTML source](user-guide/folded-pamphlet.html).
+
 ## Local development
 
 ```bash

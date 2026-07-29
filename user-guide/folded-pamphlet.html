@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lab Label Printer - Folded User Guide</title>
+  <style>
+    @font-face {
+      font-family: "Latin Modern";
+      src: url("assets/fonts/lmroman12-regular.otf");
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "Latin Modern";
+      src: url("assets/fonts/lmroman12-bold.otf");
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: "Latin Modern";
+      src: url("assets/fonts/lmroman12-italic.otf");
+      font-style: italic;
+    }
+
+    :root {
+      --paper: #fdfdfb;
+      --paper-sunk: #f5f3ec;
+      --ink: #1a1a18;
+      --ink-2: #45443f;
+      --ink-3: #6b6a63;
+      --rule: #d9d6cc;
+      --rule-strong: #bfbbb0;
+      --ocean: #0870b1;
+      --ocean-ink: #065e93;
+      --orange: #b83816;
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Latin Modern", Georgia, serif;
+      font-size: 9.5pt;
+      line-height: 1.35;
+    }
+
+    .sheet {
+      position: relative;
+      width: 297mm;
+      height: 210mm;
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      page-break-after: always;
+      page-break-inside: avoid;
+      background: var(--paper);
+    }
+
+    .sheet:last-child { page-break-after: auto; }
+
+    .sheet::before,
+    .sheet::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      margin-left: -0.1mm;
+      width: 0.2mm;
+      height: 4mm;
+      background: var(--rule-strong);
+      z-index: 10;
+    }
+
+    .sheet::before { top: 0; }
+    .sheet::after { bottom: 0; }
+
+    .panel {
+      position: relative;
+      /*
+       * WeasyPrint treats flex-basis as the content width even with
+       * border-box sizing. 122.5mm + 26mm horizontal padding = one exact
+       * 148.5mm half of A4 landscape.
+       */
+      flex: 0 0 122.5mm;
+      width: 148.5mm;
+      height: 210mm;
+      padding: 13mm 13mm 11mm;
+      overflow: hidden;
+    }
+
+    .panel + .panel { border-left: 0.2mm solid var(--rule); }
+
+    h1, h2, h3, p, ul, ol, figure { margin: 0; }
+    h1, h2, h3 { line-height: 1.12; }
+    h1 { font-size: 31pt; font-weight: 700; }
+    h2 { font-size: 19pt; font-weight: 700; }
+    h3 { font-size: 11.5pt; font-weight: 700; }
+    p + p { margin-top: 2.5mm; }
+    ul, ol { padding-left: 4.5mm; }
+    li + li { margin-top: 1mm; }
+
+    .eyebrow {
+      margin-bottom: 3mm;
+      color: var(--ocean-ink);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 7.5pt;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .title-rule {
+      width: 24mm;
+      height: 0.7mm;
+      margin: 5mm 0;
+      background: var(--ocean);
+    }
+
+    .section-rule {
+      border: 0;
+      border-top: 0.25mm solid var(--rule-strong);
+      margin: 4mm 0;
+    }
+
+    .muted { color: var(--ink-2); }
+    .small { font-size: 8pt; }
+    .tiny {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 6.7pt;
+      line-height: 1.35;
+      color: var(--ink-3);
+    }
+
+    .callout {
+      margin: 3mm 0;
+      padding: 3mm 3.5mm;
+      border-top: 0.55mm solid var(--ocean);
+      background: var(--paper-sunk);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 1mm;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 7.5pt;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    code {
+      font-family: "Courier New", monospace;
+      font-size: 8.5pt;
+      overflow-wrap: anywhere;
+    }
+
+    .step-number {
+      display: inline-block;
+      min-width: 6mm;
+      color: var(--ocean-ink);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: 700;
+    }
+
+    .step { margin-top: 4mm; }
+    .step h3 { margin-bottom: 1.5mm; }
+
+    figure img {
+      display: block;
+      width: 100%;
+      border: 0.2mm solid var(--rule-strong);
+    }
+
+    figcaption {
+      margin-top: 1.3mm;
+      color: var(--ink-3);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 6.4pt;
+      line-height: 1.25;
+    }
+
+    /* Outside: back cover, then front cover. */
+    .back-cover {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .back-cover h2 { margin-bottom: 4mm; }
+    .back-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+    }
+
+    .back-grid h3 { margin-bottom: 1.5mm; }
+    .back-grid ul { font-size: 8.7pt; }
+
+    .back-figures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm;
+      margin-top: 5mm;
+    }
+
+    .back-meta {
+      margin-top: auto;
+      padding-top: 4mm;
+      border-top: 0.25mm solid var(--rule-strong);
+    }
+
+    .front-cover {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 20mm;
+      padding-right: 20mm;
+    }
+
+    .front-cover .subtitle {
+      max-width: 78mm;
+      color: var(--ink-2);
+      font-size: 13pt;
+      line-height: 1.4;
+    }
+
+    .front-cover .cover-footer {
+      position: absolute;
+      right: 20mm;
+      bottom: 13mm;
+      left: 20mm;
+      display: flex;
+      justify-content: space-between;
+      padding-top: 3mm;
+      border-top: 0.25mm solid var(--rule-strong);
+    }
+    .front-cover .cover-footer span:last-child { margin-left: auto; }
+
+    /* Inside spread. */
+    .inside-title {
+      padding-bottom: 3mm;
+      border-bottom: 0.55mm solid var(--ink);
+      margin-bottom: 4mm;
+    }
+
+    .prepare-layout {
+      display: grid;
+      grid-template-columns: 73mm 43mm;
+      gap: 6mm;
+      align-items: start;
+    }
+
+    .form-shot { width: 43mm; }
+
+    .print-layout {
+      display: grid;
+      grid-template-columns: 62mm 49mm;
+      gap: 5mm;
+      align-items: start;
+    }
+
+    .label-crop {
+      position: relative;
+      width: 49mm;
+      height: 44mm;
+      overflow: hidden;
+      border: 0.2mm solid var(--rule-strong);
+      background: #111;
+    }
+
+    .label-crop img {
+      position: absolute;
+      top: -37.5mm;
+      left: 0;
+      width: 49mm;
+      max-width: none;
+      border: 0;
+    }
+
+    .batch-box {
+      display: grid;
+      grid-template-columns: 37mm 75mm;
+      gap: 5mm;
+      margin-top: 5mm;
+      padding-top: 4mm;
+      border-top: 0.25mm solid var(--rule-strong);
+    }
+
+    .batch-shot { width: 37mm; }
+    .print-layout > *,
+    .batch-box > * { min-width: 0; }
+    .batch-box h3 { margin-bottom: 1.5mm; }
+    .batch-box ul { font-size: 8.6pt; }
+
+    .important {
+      margin-top: 3mm;
+      padding-left: 3mm;
+      border-left: 0.7mm solid var(--orange);
+      color: var(--ink-2);
+      font-size: 8.5pt;
+    }
+  </style>
+</head>
+<body>
+  <!-- Page 1: outside. When folded, left is the back and right is the front. -->
+  <section class="sheet outside" aria-label="Outside of folded pamphlet">
+    <article class="panel back-cover">
+      <p class="eyebrow">Reference</p>
+      <h2>After printing</h2>
+
+      <div class="back-grid">
+        <section>
+          <h3>History and reprints</h3>
+          <ul>
+            <li>Open <strong>History</strong> to find previous labels.</li>
+            <li>Select a label ID to see its full record.</li>
+            <li>A reprint preserves the original sticker ID.</li>
+            <li>Batch workbooks can be downloaded from History.</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Status and admin</h3>
+          <ul>
+            <li>Use <strong>Status</strong> to check the printer and queue.</li>
+            <li>The calibration page does not consume an ID.</li>
+            <li>Only an administrator should change the ID counter.</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="back-figures">
+        <figure>
+          <img src="screenshots/screen_printHistory.jpg" alt="Print history screen">
+          <figcaption>History records every submitted label.</figcaption>
+        </figure>
+        <figure>
+          <img src="screenshots/screen_printStatus.jpg" alt="Printer status screen">
+          <figcaption>Status shows availability and queued jobs.</figcaption>
+        </figure>
+      </div>
+
+      <hr class="section-rule">
+
+      <div class="back-grid">
+        <section>
+          <h3>If the page will not open</h3>
+          <p class="small">Stay connected when your device warns that the network has no internet. Then enter the full address:</p>
+          <p><code>http://10.42.0.1:8000</code></p>
+        </section>
+        <section>
+          <h3>If printing is delayed</h3>
+          <p class="small">Check Status and allow the Pi Zero a short time to process the job before submitting it again.</p>
+        </section>
+      </div>
+
+      <div class="back-meta tiny">
+        Print on A4 landscape, double-sided, flipped on the short edge. Fold once
+        down the centre with the user-guide cover facing out.
+      </div>
+    </article>
+
+    <article class="panel front-cover">
+      <p class="eyebrow">Lab label printer</p>
+      <h1>User guide</h1>
+      <div class="title-rule"></div>
+      <p class="subtitle">Prepare and print sample labels from a phone, tablet or computer.</p>
+
+      <div class="cover-footer tiny">
+        <span>DYMO LabelWriter 450</span>
+        <span>Local lab service</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- Page 2: the double-page inside spread. -->
+  <section class="sheet inside" aria-label="Inside instruction spread">
+    <article class="panel">
+      <header class="inside-title">
+        <p class="eyebrow">Essential workflow</p>
+        <h2>Connect and prepare</h2>
+      </header>
+
+      <div class="prepare-layout">
+        <div>
+          <section class="step">
+            <h3><span class="step-number">01</span>Connect</h3>
+            <div class="callout">
+              <strong>Printer network</strong>
+              Wi-Fi: <code>Lab Label Printer</code><br>
+              Open: <code>http://10.42.0.1:8000</code>
+            </div>
+            <p class="small">The network is local and has no internet access. Remain connected if your device displays a warning.</p>
+          </section>
+
+          <section class="step">
+            <h3><span class="step-number">02</span>Sign in</h3>
+            <p class="small">Enter the shared lab password. Choose <strong>Single label</strong> for one or two stickers, or <strong>Batch upload</strong> for an Excel workbook.</p>
+          </section>
+
+          <section class="step">
+            <h3><span class="step-number">03</span>Enter label details</h3>
+            <ul class="small">
+              <li><strong>Date</strong> defaults to today.</li>
+              <li>Enter one to three <strong>Sample IDs</strong>, one per line.</li>
+              <li>Enter the <strong>Experiment ID</strong> and <strong>Requestor ID</strong>.</li>
+              <li>Label 2 initially follows Label 1's experiment and requestor details.</li>
+            </ul>
+            <p class="important">Leave Label 2 empty when it is not needed. Its sticker position stays blank and no second ID is consumed.</p>
+          </section>
+        </div>
+
+        <figure class="form-shot">
+          <img src="screenshots/screen_singleLabels.jpg" alt="Single-label form showing three sample IDs per sticker">
+          <figcaption>Each sticker accepts up to three sample IDs.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <article class="panel">
+      <header class="inside-title">
+        <p class="eyebrow">Essential workflow</p>
+        <h2>Check and print</h2>
+      </header>
+
+      <div class="print-layout">
+        <div>
+          <section class="step">
+            <h3><span class="step-number">04</span>Preview</h3>
+            <ul class="small">
+              <li>Check every sample, experiment and requestor ID.</li>
+              <li>Check the number of stickers.</li>
+              <li>The on-screen image is rotated for readability and is not physically to scale.</li>
+            </ul>
+          </section>
+
+          <section class="step">
+            <h3><span class="step-number">05</span>Confirm print</h3>
+            <p class="small">Sticker IDs shown in the preview are provisional. They are allocated permanently only when you choose <strong>Confirm print</strong>.</p>
+            <p class="important">If anything is wrong, return to the form before confirming.</p>
+          </section>
+        </div>
+
+        <figure>
+          <div class="label-crop">
+            <img src="screenshots/screen_preview.jpg" alt="Preview of two labels with three sample IDs each">
+          </div>
+          <figcaption>Confirm only after checking every field.</figcaption>
+        </figure>
+      </div>
+
+      <section class="batch-box">
+        <figure class="batch-shot">
+          <img src="screenshots/screen_batchUpload.jpg" alt="Batch upload screen">
+          <figcaption>Use the supplied Excel template.</figcaption>
+        </figure>
+        <div>
+          <p class="eyebrow">Several labels</p>
+          <h3>Batch upload</h3>
+          <ul>
+            <li>Download the template and enter one label request per row.</li>
+            <li>Required: <code>sample_id</code>, <code>experiment_id</code>, <code>requestor_id</code>.</li>
+            <li>Put up to three sample IDs on separate lines in one cell.</li>
+            <li>Optional: <code>date</code> and <code>copies</code>.</li>
+            <li>Choose <strong>Upload and validate</strong>, review the table, then confirm.</li>
+            <li>Every copy receives its own sticker ID.</li>
+          </ul>
+          <p class="important">An unused final sticker position remains blank and does not consume an ID.</p>
+        </div>
+      </section>
+    </article>
+  </section>
+</body>
+</html>
