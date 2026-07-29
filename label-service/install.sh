@@ -156,7 +156,11 @@ sed "s|@@INSTALL_DIR@@|${INSTALL_DIR}|g" \
     "${INSTALL_DIR}/label-service.service" \
     > "/etc/systemd/system/${SERVICE_NAME}.service"
 systemctl daemon-reload
-systemctl enable --now "${SERVICE_NAME}"
+systemctl enable "${SERVICE_NAME}"
+# A service that is already running keeps the old Python process after files
+# are copied into INSTALL_DIR. Restart on every install/upgrade so the newly
+# deployed code is actually loaded; restart also starts an inactive service.
+systemctl restart "${SERVICE_NAME}"
 
 sleep 1
 if systemctl is-active --quiet "${SERVICE_NAME}"; then

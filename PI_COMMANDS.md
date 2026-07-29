@@ -72,6 +72,10 @@ The serial console remains connected.
 
 First connect the Pi to normal Wi-Fi as described above.
 
+`git pull` updates only the cloned repository. The running service uses the
+separate copy in `/opt/label-service`, so `sudo ./install.sh` must also be run
+after every pull to deploy the updated application.
+
 **Pi:**
 
 ```bash
@@ -79,10 +83,21 @@ cd ~/Dymo-pi-webservice
 git pull --rebase
 cd label-service
 sudo ./install.sh
+sudo systemctl restart label-service
 sudo systemctl start label-hotspot
 ```
 
 The installer preserves `/opt/label-service/.env` and the label database.
+
+To confirm that the current three-sample label layout has been installed:
+
+```bash
+grep MAX_SAMPLE_IDS_PER_LABEL /opt/label-service/config.py
+```
+
+The command should display a line beginning
+`MAX_SAMPLE_IDS_PER_LABEL =`. Refresh the browser after installing an update;
+if necessary, force-refresh it to discard cached styles.
 
 ## Set or change the shared application password
 
