@@ -15,6 +15,22 @@ ls /dev/cu.*
 
 Look for a name containing `usbserial` or `usbmodem`.
 
+If the adapter name has changed and it is not obvious which entry is new,
+unplug the USB serial cable and record the current devices:
+
+```bash
+ls /dev/cu.* | sort > /tmp/serial-before
+```
+
+Reconnect the cable, wait a few seconds, then compare the device lists:
+
+```bash
+comm -13 /tmp/serial-before <(ls /dev/cu.* | sort)
+```
+
+The path printed by this command is the serial adapter to use. The number at
+the end may change when the cable is reconnected.
+
 ### Open the serial console
 
 **Mac:**
